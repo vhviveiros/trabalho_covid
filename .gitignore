@@ -1,4 +1,8 @@
 *processed/
+cov_masks/
+non_cov_masks/
+non_cov_histograms/
+cov_histograms/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
