@@ -35,10 +35,18 @@ X_test = sc.transform(X_test)
 
 def create_model():
     model = tf.keras.models.Sequential([
-        keras.layers.Dense(220, activation='relu', input_shape=(254,)),
-        keras.layers.Dense(220, activation='relu'),
-        keras.layers.Dense(220, activation='relu'),
-        keras.layers.Dense(220, activation='relu'),
+        keras.layers.Dense(180, activation='relu', input_shape=(254,)),
+        keras.layers.Dropout(0.2),
+        keras.layers.Dense(180, activation='relu'),
+        keras.layers.Dropout(0.2),
+        keras.layers.Dense(180, activation='relu'),
+        keras.layers.Dropout(0.2),
+        keras.layers.Dense(180, activation='relu'),
+        keras.layers.Dropout(0.2),
+        keras.layers.Dense(180, activation='relu'),
+        keras.layers.Dropout(0.2),
+        keras.layers.Dense(180, activation='relu'),
+        keras.layers.Dropout(0.2),
         keras.layers.Dense(1, activation='sigmoid')
     ])
 
@@ -54,7 +62,7 @@ model = create_model()
 model.summary()
 
 # %%Insere a base de dados na rede neural proposta e realiza o treinamento
-history = model.fit(X_train, y_train, batch_size=32, epochs=200,
+history = model.fit(X_train, y_train, batch_size=16, epochs=500,
                     verbose=1, validation_data=(X_test, y_test))
 
 # %%Salva o treinamento

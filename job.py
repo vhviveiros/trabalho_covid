@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from PIL import ImageEnhance, Image
 
+
 def enhaceContrast(img, factor):
     return np.asarray(ImageEnhance.Contrast(Image.fromarray(np.copy(img))).enhance(factor))
 
@@ -16,12 +17,11 @@ def removePixels(img):
 
 
 def cutImage(img, mask):
-    result = np.copy(img)
-    for i in range(0, len(result)):
-        for j in range(0, len(result[i])):
+    for i in range(0, len(img)):
+        for j in range(0, len(img[i])):
             if mask[i][j] <= 20:
-                result[i][j] = 0
-    return result
+                img[i][j] = 0
+    return img
 
 
 def job(args):
