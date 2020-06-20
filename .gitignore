@@ -3,6 +3,9 @@ cov_masks/
 non_cov_masks/
 non_cov_histograms/
 cov_histograms/
+save*
+characteristics.csv
+log/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

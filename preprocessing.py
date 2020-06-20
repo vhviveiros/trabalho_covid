@@ -9,8 +9,9 @@ import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
 import job
-from image_segmentation import segmentate_images as seg
 import pandas as pd
+from image import ImageGenerator, ImageProcessor, ImageSaver, ImageSegmentator
+import time
 
 covid_path = os.path.join('dataset/covid')
 covid_masks_path = os.path.join('cov_masks')
@@ -28,55 +29,47 @@ def check_folder(folder):
 check_folder(covid_masks_path)
 check_folder(non_covid_masks_path)
 
-seg(covid_path, 'cov_masks')
-seg(non_covid_path, 'non_cov_masks')
+ImageSegmentator(folder_in=covid_path,
+                 folder_out=covid_masks_path).segmentate()
+ImageSegmentator(folder_in=non_covid_path,
+                 folder_out=non_covid_masks_path).segmentate()
 
 # %%Read images
+generator = ImageGenerator()
 
-
-def readImages(path):
-    return [cv2.imread(file, cv2.IMREAD_GRAYSCALE) for file in glob.glob(path + "/*g")]
-
-
-with ThreadPoolExecutor() as executor:
-    covid_images = executor.submit(readImages, covid_path)
-    covid_masks = executor.submit(readImages, covid_masks_path)
-
-    non_covid_images = executor.submit(readImages, non_covid_path)
-    non_covid_masks = executor.submit(readImages, non_covid_masks_path)
+covid_images, covid_masks, non_covid_images, non_covid_masks = generator.generate_preprocessing_data(
+    covid_path,
+    covid_masks_path,
+    non_covid_path,
+    non_covid_masks_path
+)
 
 # %%Processing
+cov_processor = ImageProcessor(
+    list(covid_images.result()),
+    list(covid_masks.result()))
 
+non_cov_processor = ImageProcessor(
+    list(non_covid_images.result()),
+    list(non_covid_masks.result()))
 
-def process(images, masks):
-    list = []
-    with multiprocessing.Pool() as pool:
-        list.append(pool.map(job.job, np.swapaxes([images, masks], 0, 1)))
-    return np.squeeze(np.asarray(list))
+print("Processing images")
+cov_processed = cov_processor.process()
+non_cov_processed = non_cov_processor.process()
 
-
-with ThreadPoolExecutor() as executor:
-    cov_processed = executor.submit(
-        process, covid_images.result(), covid_masks.result())
-    non_cov_processed = executor.submit(
-        process, non_covid_images.result(), non_covid_masks.result())
+# with ThreadPoolExecutor() as executor:
+#     cov_processed = executor.submit(cov_processor.process)
+#     non_cov_processed = executor.submit(non_cov_processor.process)
 
 # %%Saving
-
-
-def save_images(images, save_path):
-    for i in range(0, len(images)):
-        cv2.imwrite(save_path + '/img' + str(i) + '.png', images[i])
-
-
 cov_save_path = os.path.join('cov_processed')
 non_cov_save_path = os.path.join('non_cov_processed')
 
 check_folder(cov_save_path)
 check_folder(non_cov_save_path)
 
-save_images(cov_processed.result(), cov_save_path)
-save_images(non_cov_processed.result(), non_cov_save_path)
+ImageSaver(cov_processed).save_to(cov_save_path)
+ImageSaver(non_cov_processed).save_to(non_cov_save_path)
 
 # %%Saving characteristics
 
