@@ -14,8 +14,9 @@ from sklearn.model_selection import train_test_split
 from models import unet_model
 import concurrent
 from tqdm import tqdm
-from numba import njit, prange
+from numba import prange, jit, njit
 from alive_progress import alive_bar
+import pandas as pd
 
 
 class Image:
@@ -43,6 +44,12 @@ class Image:
 
     def shape(self):
         return self.data.shape
+
+    def hist(self):
+        result = np.squeeze(cv2.calcHist(
+            [self.data], [0], None, [254], [1, 255]))
+        result = np.asarray(result, dtype='int32')
+        return result
 
 
 class ImageGenerator:
@@ -94,6 +101,15 @@ class ImageGenerator:
             # Split into test and training
             return train_test_split(
                 entries, results, test_size=0.2, random_state=0)
+
+    def generate_processed_data(self, covid_processed_path, non_covid_processed_path, divide=True, reshape=False):
+        with ThreadPoolExecutor() as executor:
+            covid_images = executor.submit(
+                self.generate_from, covid_processed_path)
+            non_covid_images = executor.submit(
+                self.generate_from, non_covid_processed_path)
+
+            return [covid_images, non_covid_images]
 
 
 class ImageSaver:
@@ -187,3 +203,15 @@ class ImageSegmentator:
             test_files)
         results = model.predict_generator(test_gen, len(test_files), verbose=1)
         self.__save_result(self.folder_out, results, test_files)
+
+
+class ImageCharacteristics:
+    def __init__(self, cov_images, non_cov_images):
+        self.cov_images = cov_images
+        self.non_cov_images = non_cov_images
+
+    def save(self, file_path):
+        data = [np.append(img.hist(), [0]) for img in self.non_cov_images]
+        data += [np.append(img.hist(), [1]) for img in self.cov_images]
+
+        pd.DataFrame(data).to_csv(file_path)

@@ -6,6 +6,7 @@ cov_histograms/
 save*
 characteristics.csv
 log/
+test.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

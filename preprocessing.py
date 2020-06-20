@@ -8,9 +8,8 @@ import logging
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
-import job
 import pandas as pd
-from image import ImageGenerator, ImageProcessor, ImageSaver, ImageSegmentator
+from image import *
 import time
 
 covid_path = os.path.join('dataset/covid')
@@ -53,15 +52,11 @@ non_cov_processor = ImageProcessor(
     list(non_covid_images.result()),
     list(non_covid_masks.result()))
 
-print("Processing images")
+print("Processing images\n")
 cov_processed = cov_processor.process()
 non_cov_processed = non_cov_processor.process()
 
-# with ThreadPoolExecutor() as executor:
-#     cov_processed = executor.submit(cov_processor.process)
-#     non_cov_processed = executor.submit(non_cov_processor.process)
-
-# %%Saving
+# %%Saving processed images
 cov_save_path = os.path.join('cov_processed')
 non_cov_save_path = os.path.join('non_cov_processed')
 
@@ -71,51 +66,18 @@ check_folder(non_cov_save_path)
 ImageSaver(cov_processed).save_to(cov_save_path)
 ImageSaver(non_cov_processed).save_to(non_cov_save_path)
 
+# %%Reading processed images
+generator = ImageGenerator()
+
+cov_processed_gen, non_cov_processed_gen = generator.generate_processed_data(
+    covid_path, non_covid_path)
+
+cov_processed = list(cov_processed_gen.result())
+non_cov_processed = list(non_cov_processed_gen.result())
+
 # %%Saving characteristics
+characteristics_file = 'characteristics.csv'
+ImageCharacteristics(cov_processed, non_cov_processed).save(
+    characteristics_file)
 
-
-count = 0
-
-
-def save_characteristics(cov_images, non_cov_images):
-    data_size = len(cov_images) + len(non_cov_images)
-    # 255 = 254 from histogram + 1 of covid/non-covid
-    data = np.zeros((data_size, 255))
-
-    def fill_with(images, type):
-        global count
-        for img in images:
-            hist = np.squeeze(cv2.calcHist([img], [0], None, [254], [1, 255]))
-            data[count] = np.append(hist, type)
-            count += 1
-
-    fill_with(non_cov_images, 0)
-    fill_with(cov_images, 1)
-
-    pd.DataFrame(data).to_csv(os.path.join('characteristics.csv'))
-
-
-save_characteristics(cov_processed.result(), non_cov_processed.result())
-
-# %%Generating histogram
-
-
-def save_histogram(args):
-    images, save_path = args
-    check_folder(save_path)
-
-    for i in range(0, len(images)):
-        plt.figure()
-        histg = cv2.calcHist([images[i]], [0], None, [254], [
-                             1, 255])  # calculating histogram
-        plt.plot(histg)
-        plt.savefig(save_path + '/img' + str(i) + '.png')
-        plt.close()
-
-
-cov_histograms_path = os.path.join('non_cov_histograms')
-non_cov_histograms_path = os.path.join('cov_histograms')
-
-with ThreadPoolExecutor() as executor:
-    executor.map(save_histogram, [[non_cov_processed.result(), non_cov_histograms_path], [
-                 cov_processed.result(), cov_histograms_path]])
+# %%
