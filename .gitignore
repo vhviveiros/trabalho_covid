@@ -5,7 +5,7 @@ non_cov_histograms/
 cov_histograms/
 save*
 characteristics.csv
-log/
+logs/
 test.py
 
 # Byte-compiled / optimized / DLL files

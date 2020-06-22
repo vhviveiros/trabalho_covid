@@ -1,10 +1,9 @@
 # %%Imports
 import cv2
 import numpy as np
-import os
-import glob
 import matplotlib.pyplot as plt
 import logging
+from utils import abs_path, check_folder
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
@@ -12,17 +11,11 @@ import pandas as pd
 from image import *
 import time
 
-covid_path = os.path.join('dataset/covid')
-covid_masks_path = os.path.join('cov_masks')
+covid_path = abs_path('dataset/covid')
+covid_masks_path = abs_path('cov_masks')
 
-non_covid_path = os.path.join('dataset/normal')
-non_covid_masks_path = os.path.join('non_cov_masks')
-
-
-def check_folder(folder):
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-
+non_covid_path = abs_path('dataset/normal')
+non_covid_masks_path = abs_path('non_cov_masks')
 
 # %%Segmentation
 check_folder(covid_masks_path)
@@ -57,8 +50,8 @@ cov_processed = cov_processor.process()
 non_cov_processed = non_cov_processor.process()
 
 # %%Saving processed images
-cov_save_path = os.path.join('cov_processed')
-non_cov_save_path = os.path.join('non_cov_processed')
+cov_save_path = abs_path('cov_processed')
+non_cov_save_path = abs_path('non_cov_processed')
 
 check_folder(cov_save_path)
 check_folder(non_cov_save_path)

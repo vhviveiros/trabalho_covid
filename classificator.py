@@ -7,52 +7,20 @@ Created on Wed May 27 15:12:32 2020
 # %%Imports
 import numpy as np
 from sklearn.metrics import confusion_matrix
-from sklearn.preprocessing import LabelEncoder, StandardScaler
-import cv2
-import os
-from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
-
-import datetime
-import glob
-import cnn
-import unet
-import fcnn
 from sklearn.model_selection import train_test_split
-import keras
+from sklearn.preprocessing import StandardScaler
+import tensorflow as tf
+from tensorflow import keras
+import datetime
+from keras.utils import np_utils
+from utils import abs_path, check_folder
+from models import deep_model
 
 # %%Read csv
 ctcs = pd.read_csv('characteristics.csv')
 entries = ctcs.iloc[:, 1:255].values
 results = ctcs.iloc[:, 255].values
-
-# %%Read images
-covid_path = os.path.join('cov_processed')
-non_covid_path = os.path.join('non_cov_processed')
-
-
-def readImages(path):
-    images = []
-    for file in glob.glob(path + "/*g"):
-        img = cv2.imread(file, cv2.IMREAD_GRAYSCALE)
-        img = cv2.resize(img, (512, 512))
-        images.append(img)
-    return images
-
-
-with ThreadPoolExecutor() as executor:
-    covid_images = executor.submit(readImages, covid_path)
-    non_covid_images = executor.submit(readImages, non_covid_path)
-
-entries = np.concatenate((covid_images.result(), non_covid_images.result()))
-entries = np.repeat(entries[..., np.newaxis], 3, -1)
-
-cov_len = len(covid_images.result())
-non_cov_len = len(non_covid_images.result())
-results_len = cov_len + non_cov_len
-results = np.zeros((results_len))
-
-results[0:cov_len] = 1
 
 
 # %%Split into test and training
@@ -64,32 +32,26 @@ sc = StandardScaler()
 X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
-# %%Create FCNN model
-model = fcnn.model()
+# Create a basic model instance
+model = deep_model()
+date_time = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
 
-# %%Create CNN model
-model = cnn.model()
-
-# %%Create U-NET model
-model = unet.model()
-
-# %%Mostra a arquitetura de rede neural desenvolvida
+# Display the model's architecture
 model.summary()
 
-# %%tensorboard configuration
-log_dir = "cnn_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = keras.callbacks.TensorBoard(
+log_dir = abs_path("logs\\") + date_time
+tensorboard_callback = tf.keras.callbacks.TensorBoard(
     log_dir=log_dir, histogram_freq=1)
 
-# %%Insere a base de dados na rede neural proposta e realiza o treinamento
-history = model.fit(X_train, y_train, batch_size=32, epochs=25, use_multiprocessing=True,
-                    verbose=1, validation_data=(X_test, y_test))
+# Fitting the ANN to the Training set
+history = model.fit(X_train, y_train, batch_size=16, epochs=250, verbose=1, use_multiprocessing=True,
+                    validation_data=(X_test, y_test), callbacks=[tensorboard_callback])
 
 # %%Read model
 model.load_weights('save_0.93_0.55.h5')
 
 # %%Salva o treinamento
-model.save('save_0.93_0.55.h5')
+model.save('save_' + date_time + '.h5')
 
 # %%Results
 # Comando para executar Tensorboard

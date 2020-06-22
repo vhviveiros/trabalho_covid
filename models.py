@@ -1,9 +1,7 @@
-from keras.callbacks import ModelCheckpoint, LearningRateScheduler
-from keras.preprocessing.image import ImageDataGenerator
-from keras import backend as keras
-from keras.optimizers import *
-from keras.layers import *
-from keras.models import *
+from tensorflow.keras.layers import Dropout, Dense, Conv2D, MaxPooling2D, Conv2DTranspose, Input, concatenate
+from tensorflow.keras.metrics import AUC, Precision, Recall
+from tensorflow.keras.models import Sequential, Model
+import tensorflow as tf
 
 
 def unet_model(input_size):
@@ -51,3 +49,27 @@ def unet_model(input_size):
     conv10 = Conv2D(1, (1, 1), activation='sigmoid')(conv9)
 
     return Model(inputs=[inputs], outputs=[conv10])
+
+
+def deep_model():
+    model = Sequential([
+        Dense(
+            200, activation='relu', input_shape=(254,)),
+        Dropout(0.2),
+        Dense(200, activation='relu'),
+        Dropout(0.2),
+        Dense(200, activation='relu'),
+        Dropout(0.2),
+        Dense(200, activation='relu'),
+        Dropout(0.2),
+        Dense(200, activation='relu'),
+        Dropout(0.2),
+        Dense(200, activation='relu'),
+        Dropout(0.2),
+        Dense(1, activation='sigmoid')
+    ])
+
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[
+                  'accuracy', AUC(), Precision(), Recall()])
+
+    return model

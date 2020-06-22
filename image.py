@@ -4,12 +4,9 @@ from keras import backend as keras
 from keras.optimizers import *
 from keras.layers import *
 from keras.models import *
-import glob
 import cv2
 import numpy as np
 from concurrent.futures.thread import ThreadPoolExecutor
-from glob import glob
-import os
 from sklearn.model_selection import train_test_split
 from models import unet_model
 import concurrent
@@ -17,6 +14,9 @@ from tqdm import tqdm
 from numba import prange, jit, njit
 from alive_progress import alive_bar
 import pandas as pd
+import os
+from utils import abs_path
+from glob import glob
 
 
 class Image:
@@ -38,7 +38,7 @@ class Image:
 
     def save_to(self, path_dir):
         filename, fileext = os.path.splitext(os.path.basename(self.image_file))
-        result_file = os.path.join(
+        result_file = abs_path(
             path_dir, "%s_processed%s" % (filename, fileext))
         cv2.imwrite(result_file, self.data)
 
@@ -188,7 +188,7 @@ class ImageSegmentator:
 
             filename, fileext = os.path.splitext(os.path.basename(result_file))
 
-            result_file = os.path.join(
+            result_file = abs_path(
                 save_path, "%s_predict%s" % (filename, fileext))
 
             cv2.imwrite(result_file, img)
