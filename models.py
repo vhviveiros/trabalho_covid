@@ -51,25 +51,21 @@ def unet_model(input_size):
     return Model(inputs=[inputs], outputs=[conv10])
 
 
-def deep_model():
-    model = Sequential([
-        Dense(
-            200, activation='relu', input_shape=(254,)),
-        Dropout(0.2),
-        Dense(200, activation='relu'),
-        Dropout(0.2),
-        Dense(200, activation='relu'),
-        Dropout(0.2),
-        Dense(200, activation='relu'),
-        Dropout(0.2),
-        Dense(200, activation='relu'),
-        Dropout(0.2),
-        Dense(200, activation='relu'),
-        Dropout(0.2),
-        Dense(1, activation='sigmoid')
-    ])
-
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=[
-                  'accuracy', AUC(), Precision(), Recall()])
-
-    return model
+def classifier_model(optimizer, activation, activationOutput):
+    classifier = Sequential()
+    classifier.add(Dense(units=200, activation=activation, input_shape=(254,)))
+    classifier.add(Dropout(rate=0.2))
+    classifier.add(Dense(units=200, activation=activation))
+    classifier.add(Dropout(rate=0.2))
+    classifier.add(Dense(units=200, activation=activation))
+    classifier.add(Dropout(rate=0.2))
+    classifier.add(Dense(units=200, activation=activation))
+    classifier.add(Dropout(rate=0.2))
+    classifier.add(Dense(units=200, activation=activation))
+    classifier.add(Dropout(rate=0.2))
+    classifier.add(Dense(units=200, activation=activation))
+    classifier.add(Dropout(rate=0.2))
+    classifier.add(Dense(units=1, activation=activationOutput))
+    classifier.compile(optimizer=optimizer,
+                       loss='binary_crossentropy', metrics=['accuracy', AUC(), Precision(), Recall()])
+    return classifier
