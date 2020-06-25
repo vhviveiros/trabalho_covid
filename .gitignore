@@ -4,7 +4,8 @@ non_cov_masks/
 non_cov_histograms/
 cov_histograms/
 save*
-characteristics.csv
+*.csv
+*.h5
 logs/
 test.py
 

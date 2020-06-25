@@ -38,16 +38,11 @@ class Classifier:
         self.X_test = sc.transform(X_test)
 
     def __format_validation(self, grid_cv):
-        entries = list(
-            filter(lambda x: str.startswith(x, 'split'), grid_cv.cv_results_))
-
-        cv = grid_cv.cv
-
         def key_filter(key):
             return list(filter(lambda x: x.startswith('split') and x.__contains__(key), grid_cv.cv_results_))
 
-        result_set = [[grid_cv.cv_results_[m]
-                       for m in key_filter(metric)] for metric in self.metrics]
+        return {metric: [grid_cv.cv_results_[m][0] for m in key_filter(metric)]
+                for metric in self.metrics}
 
     def validation(self, cv=10, batch_size=-1, epochs=-1, save_path=None):
         classifier = KerasClassifier(build_fn=classifier_model)
@@ -71,11 +66,14 @@ class Classifier:
 
         grid_search = grid_search.fit(self.X_train, self.y_train)
 
-        if save_path is not None:
-            result_set = self.__format_validation(grid_search)
-            pd.DataFrame(result_set).to_csv(save_path)
+        if save_path is not None and len(batch_size) + len(epochs) == 2:
+            self.__save_validation(grid_search, save_path)
 
         return grid_search
+
+    def __save_validation(self, grid_search, save_path):
+        result_set = self.__format_validation(grid_search)
+        pd.DataFrame(result_set).to_csv(save_path)
 
     def fit(self, logs_folder, export_dir=None, batch_size=32, epochs=250):
         date_time = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
