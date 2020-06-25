@@ -21,26 +21,21 @@ import datetime
 from classifier import Classifier
 
 # Read data
-cf = Classifier('characteristics.csv')
+cf = Classifier(input_file='characteristics.csv')
 
 # Model validation
+val = cf.validation(batch_size=[32], epochs=[5], cv=5, save_path='teste.csv')
 #cf.validation(batch_size=[32, 16, 24], epochs=[100, 250, 200, 500])
 
 # Model train
-cf.fit(logs_folder=abs_path("logs\\"), save_dir=abs_path('teste/'), epochs=10)
+# cf.fit(logs_folder=abs_path("logs\\"),
+#        export_dir=abs_path('teste/'), epochs=10)
 
 # %%Read model
-model.load_weights('save_0.93_0.55.h5')
+cf = Classifier(import_model=abs_path('teste/save_2020_06_24-17_35_07.h5'))
 
 # %%Results
 # Comando para executar Tensorboard
 # tensorboard --logdir logs/
 # print(history.history.keys())
-
-pred = model.predict_classes(X_test)
-test = y_test
-matrix = confusion_matrix(pred, test)
-print(matrix)
-
-
 # %%
