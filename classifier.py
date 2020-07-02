@@ -55,10 +55,13 @@ class Classifier:
 
         self.metrics = ['accuracy', 'roc_auc', 'precision', 'recall']
 
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(
+            log_dir=abs_path('teste'), histogram_freq=1)
+
         grid_search = GridSearchCV(estimator=classifier,
                                    verbose=2,
                                    param_grid=parameters,
-                                   n_jobs=None,
+                                   n_jobs=-2,
                                    scoring=self.metrics,
                                    refit='precision',
                                    return_train_score=False,

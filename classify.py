@@ -24,7 +24,8 @@ from classifier import Classifier
 cf = Classifier(input_file='characteristics.csv')
 
 # Model validation
-val = cf.validation(batch_size=[32], epochs=[5], cv=5, save_path='teste.csv')
+val = cf.validation(batch_size=[32, 16, 24], epochs=[
+                    2, 3, 5], cv=2, save_path=abs_path('teste_.csv'))
 #cf.validation(batch_size=[32, 16, 24], epochs=[100, 250, 200, 500])
 
 # Model train

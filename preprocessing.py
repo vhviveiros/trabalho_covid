@@ -70,7 +70,21 @@ non_cov_processed = list(non_cov_processed_gen.result())
 
 # %%Saving characteristics
 characteristics_file = 'characteristics.csv'
-ImageCharacteristics(cov_processed, non_cov_processed).save(
-    characteristics_file)
+ic = ImageCharacteristics(cov_processed, non_cov_processed)
+ic.save(characteristics_file)
+
+# %%Saving histograms
+cov_histograms_path = abs_path('cov_histograms')
+non_cov_histograms_path = abs_path('non_cov_histograms')
+
+check_folder(cov_histograms_path)
+check_folder(non_cov_histograms_path)
+
+for i in cov_processed:
+    i.save_hist(cov_histograms_path)
+
+for i in non_cov_processed:
+    i.save_hist(non_cov_histograms_path)
+
 
 # %%

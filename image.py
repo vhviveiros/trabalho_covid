@@ -15,8 +15,9 @@ from numba import prange, jit, njit
 from alive_progress import alive_bar
 import pandas as pd
 import os
-from utils import abs_path
+from utils import abs_path, check_folder
 from glob import glob
+from matplotlib import pyplot as plt
 
 
 class Image:
@@ -36,8 +37,11 @@ class Image:
             img = np.reshape(img, (1,) + img.shape)
         return img
 
+    def get_file_dir(self):
+        return os.path.splitext(os.path.basename(self.image_file))
+
     def save_to(self, path_dir):
-        filename, fileext = os.path.splitext(os.path.basename(self.image_file))
+        filename, fileext = self.get_file_dir()
         result_file = abs_path(
             path_dir, "%s_processed%s" % (filename, fileext))
         cv2.imwrite(result_file, self.data)
@@ -50,6 +54,17 @@ class Image:
             [self.data], [0], None, [254], [1, 255]))
         result = np.asarray(result, dtype='int32')
         return result
+
+    def save_hist(self, save_folder=''):
+        plt.figure()
+        histg = cv2.calcHist([self.data], [0], None, [254], [
+            1, 255])  # calculating histogram
+        plt.plot(histg)
+        filename, fileext = self.get_file_dir()
+        result_file = abs_path(
+            save_folder, "%s_histogram%s" % (filename, fileext))
+        plt.savefig(result_file)
+        plt.close()
 
 
 class ImageGenerator:
