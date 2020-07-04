@@ -8,6 +8,9 @@ save*
 *.h5
 logs/
 test.py
+output/
+*.txt
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

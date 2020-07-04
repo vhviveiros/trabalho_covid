@@ -1,12 +1,14 @@
-from keras.wrappers.scikit_learn import KerasClassifier
-from models import classifier_model
-from sklearn.model_selection import GridSearchCV, train_test_split
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
 import datetime
-from utils import abs_path, check_folder
 import tensorflow as tf
-from sklearn.metrics import confusion_matrix
+from tensorflow.keras.metrics import AUC, Recall, Precision
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix, make_scorer, f1_score
+from models import classifier_model
+from utils import check_folder
+from training_plot import TrainingPlot
 
 
 class Classifier:
@@ -44,30 +46,44 @@ class Classifier:
         return {metric: [grid_cv.cv_results_[m][0] for m in key_filter(metric)]
                 for metric in self.metrics}
 
-    def validation(self, cv=10, batch_size=-1, epochs=-1, save_path=None):
+    @staticmethod
+    def custom_specificity(y_true, y_pred):
+        tn, fp, fn, tp = confusion_matrix(
+            y_true, y_pred, labels=[0, 1]).ravel()
+        return (tn / (tn + fp))
+
+    @staticmethod
+    def custom_sensitivity(y_true, y_pred):
+        tn, fp, fn, tp = confusion_matrix(
+            y_true, y_pred, labels=[0, 1]).ravel()
+        return (tp / (tp + fn))
+
+    def validation(self, cv=10, batch_size=-1, epochs=-1, units=-1, save_path=None):
         classifier = KerasClassifier(build_fn=classifier_model)
 
         parameters = {'batch_size': batch_size,
                       'epochs': epochs,
+                      'units': units,
                       'optimizer': ['adam'],
                       'activation': ['relu'],
                       'activationOutput': ['sigmoid']}
 
-        self.metrics = ['accuracy', 'roc_auc', 'precision', 'recall']
-
-        tensorboard_callback = tf.keras.callbacks.TensorBoard(
-            log_dir=abs_path('teste'), histogram_freq=1)
+        self.metrics = {'accuracy': 'accuracy',
+                        'precision': 'precision',
+                        'f1_score': make_scorer(f1_score),
+                        'sensitivity': make_scorer(Classifier.custom_sensitivity),
+                        'specificity': make_scorer(Classifier.custom_specificity)}
 
         grid_search = GridSearchCV(estimator=classifier,
                                    verbose=2,
                                    param_grid=parameters,
-                                   n_jobs=-2,
+                                   n_jobs=1,
                                    scoring=self.metrics,
-                                   refit='precision',
+                                   refit='accuracy',
                                    return_train_score=False,
                                    cv=cv)
 
-        grid_search = grid_search.fit(self.X_train, self.y_train)
+        grid_search.fit(self.X_train, self.y_train)
 
         if save_path is not None and len(batch_size) + len(epochs) == 2:
             self.__save_validation(grid_search, save_path)
@@ -78,14 +94,15 @@ class Classifier:
         result_set = self.__format_validation(grid_search)
         pd.DataFrame(result_set).to_csv(save_path)
 
-    def fit(self, logs_folder, export_dir=None, batch_size=32, epochs=250):
+    def fit(self, logs_folder, export_dir=None, batch_size=16, epochs=250, units=180, metrics=['accuracy']):
         date_time = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
         log_dir = logs_folder + date_time
         tensorboard_callback = tf.keras.callbacks.TensorBoard(
             log_dir=log_dir, histogram_freq=1)
-        self.model = classifier_model('adam', 'relu', 'sigmoid')
+        self.model = classifier_model('adam', 'relu', 'sigmoid', units,
+                                      ['accuracy', Precision(), AUC(), Recall()])
         history = self.model.fit(self.X_train, self.y_train, batch_size=batch_size, epochs=epochs, verbose=1, use_multiprocessing=True,
-                                 validation_data=(self.X_test, self.y_test), callbacks=[tensorboard_callback])
+                                 validation_data=(self.X_test, self.y_test), callbacks=[TrainingPlot(), tensorboard_callback])
         if export_dir is not None:
             self.__export_model(export_dir, date_time)
 

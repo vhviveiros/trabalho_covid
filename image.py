@@ -1,21 +1,13 @@
-from keras.callbacks import ModelCheckpoint, LearningRateScheduler
-from keras.preprocessing.image import ImageDataGenerator
-from keras import backend as keras
-from keras.optimizers import *
-from keras.layers import *
-from keras.models import *
 import cv2
 import numpy as np
 from concurrent.futures.thread import ThreadPoolExecutor
 from sklearn.model_selection import train_test_split
 from models import unet_model
-import concurrent
 from tqdm import tqdm
-from numba import prange, jit, njit
-from alive_progress import alive_bar
+from numba import prange, njit
 import pandas as pd
 import os
-from utils import abs_path, check_folder
+from utils import abs_path
 from glob import glob
 from matplotlib import pyplot as plt
 

@@ -1,5 +1,4 @@
 from tensorflow.keras.layers import Dropout, Dense, Conv2D, MaxPooling2D, Conv2DTranspose, Input, concatenate
-from tensorflow.keras.metrics import AUC, Precision, Recall
 from tensorflow.keras.models import Sequential, Model
 import tensorflow as tf
 
@@ -51,21 +50,22 @@ def unet_model(input_size):
     return Model(inputs=[inputs], outputs=[conv10])
 
 
-def classifier_model(optimizer, activation, activationOutput):
+def classifier_model(optimizer, activation, activationOutput, units, metrics=['accuracy']):
     classifier = Sequential()
-    classifier.add(Dense(units=200, activation=activation, input_shape=(254,)))
+    classifier.add(
+        Dense(units=units, activation=activation, input_shape=(254,)))
     classifier.add(Dropout(rate=0.2))
-    classifier.add(Dense(units=200, activation=activation))
+    classifier.add(Dense(units=units, activation=activation))
     classifier.add(Dropout(rate=0.2))
-    classifier.add(Dense(units=200, activation=activation))
+    classifier.add(Dense(units=units, activation=activation))
     classifier.add(Dropout(rate=0.2))
-    classifier.add(Dense(units=200, activation=activation))
+    classifier.add(Dense(units=units, activation=activation))
     classifier.add(Dropout(rate=0.2))
-    classifier.add(Dense(units=200, activation=activation))
+    classifier.add(Dense(units=units, activation=activation))
     classifier.add(Dropout(rate=0.2))
-    classifier.add(Dense(units=200, activation=activation))
+    classifier.add(Dense(units=units, activation=activation))
     classifier.add(Dropout(rate=0.2))
     classifier.add(Dense(units=1, activation=activationOutput))
     classifier.compile(optimizer=optimizer,
-                       loss='binary_crossentropy', metrics=['accuracy', AUC(), Precision(), Recall()])
+                       loss='binary_crossentropy', metrics=metrics)
     return classifier
