@@ -2,7 +2,7 @@ import pandas as pd
 import datetime
 import tensorflow as tf
 from tensorflow.keras.metrics import AUC, Recall, Precision
-from keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, make_scorer, f1_score
@@ -77,7 +77,7 @@ class Classifier:
         grid_search = GridSearchCV(estimator=classifier,
                                    verbose=2,
                                    param_grid=parameters,
-                                   n_jobs=1,
+                                   n_jobs=-2,
                                    scoring=self.metrics,
                                    refit='accuracy',
                                    return_train_score=False,

@@ -54,7 +54,7 @@ class Image:
         plt.plot(histg)
         filename, fileext = self.get_file_dir()
         result_file = abs_path(
-            save_folder, "%s_histogram%s" % (filename, fileext))
+            save_folder, "%s_histogram%s" % (filename, '.png'))
         plt.savefig(result_file)
         plt.close()
 

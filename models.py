@@ -1,7 +1,9 @@
 from tensorflow.keras.layers import Dropout, Dense, Conv2D, MaxPooling2D, Conv2DTranspose, Input, concatenate
 from tensorflow.keras.models import Sequential, Model
 import tensorflow as tf
-
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.compat.v1.Session(config=config)
 
 def unet_model(input_size):
     inputs = Input(input_size)

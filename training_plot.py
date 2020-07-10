@@ -2,13 +2,13 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import keras
+import tensorflow.keras
 # Specifying the backend to be used before importing pyplot
 # to avoid "RuntimeError: Invalid DISPLAY variable"
 matplotlib.use('agg')
 
 
-class TrainingPlot(keras.callbacks.Callback):
+class TrainingPlot(tensorflow.keras.callbacks.Callback):
 
     # This function is called when the training begins
     def on_train_begin(self, logs={}):
